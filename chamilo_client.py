@@ -55,6 +55,12 @@ def parse_grade_row(row: str):
     if len(cells) < 6:
         return None
 
+    # Certaines lignes contiennent une cellule fantome en tete, artefact
+    # d'un tableau imbrique dans le HTML : son texte englobe deja celui
+    # de la cellule suivante. On la retire pour ne pas decaler les colonnes.
+    if len(cells) > 6 and len(cells[0]) > 35 and cells[1] and cells[1] in cells[0]:
+        cells = cells[1:]
+
     matiere, _, epreuve, coef, note, moyenne = cells[:6]
 
     HEADER_WORDS = {"Intitulé", "Module", "Type(coef)", "Matiere", "Matière"}
