@@ -6,16 +6,21 @@ self.addEventListener("push", (event) => {
     data.body = event.data ? event.data.text() : "";
   }
 
+  const icon = data.icon || "icons/icon-192.png";
+
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: "icons/icon-192.png",
-      badge: "icons/icon-192.png",
+      icon,
+      badge: icon,
+      tag: data.type || "general",
+      data: { tab: data.type === "mail" ? "messagerie" : "notes" },
     })
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow("/"));
+  const tab = event.notification.data && event.notification.data.tab;
+  event.waitUntil(clients.openWindow(tab ? `/?tab=${tab}` : "/"));
 });

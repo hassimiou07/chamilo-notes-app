@@ -190,6 +190,11 @@ window.addEventListener("load", async () => {
     document.getElementById("message-detail").hidden = true;
   });
   setupSwipeToClose();
+
+  const requestedTab = new URLSearchParams(location.search).get("tab");
+  if (requestedTab === "messagerie") {
+    document.querySelector('[data-tab="messagerie"]').click();
+  }
 });
 
 function setupSwipeToClose() {

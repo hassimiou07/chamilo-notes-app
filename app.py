@@ -107,14 +107,15 @@ def api_subscribe():
     return jsonify({"ok": True})
 
 
-def send_push_to_all(title: str, body: str) -> None:
+def send_push_to_all(title: str, body: str, notif_type: str = "general") -> None:
+    icon = "icons/icon-mail.png" if notif_type == "mail" else "icons/icon-note.png"
     subs = load_json(SUBS_PATH, [])
     still_valid = []
     for sub in subs:
         try:
             webpush(
                 subscription_info=sub,
-                data=json.dumps({"title": title, "body": body}),
+                data=json.dumps({"title": title, "body": body, "type": notif_type, "icon": icon}),
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims={"sub": VAPID_CLAIM_EMAIL},
             )
@@ -149,7 +150,7 @@ def api_check():
                 f"{grade['epreuve']} - Note : {grade['note']}/20 (coef {grade['coef']})\n"
                 f"Ta moyenne dans cette ressource : {grade['moyenne']}"
             )
-            send_push_to_all(title, body)
+            send_push_to_all(title, body, notif_type="note")
 
     current_messages = get_recent_messages(cfg)
     previous_messages = load_json(MAIL_STATE_PATH, [])
@@ -163,7 +164,7 @@ def api_check():
         for msg in new_messages:
             title = f"Nouveau mail : {msg['subject']}"
             body = f"De : {msg['from']}\n{msg['body'][:300]}"
-            send_push_to_all(title, body)
+            send_push_to_all(title, body, notif_type="mail")
 
     return jsonify({
         "new_grades": len(new_grades),
