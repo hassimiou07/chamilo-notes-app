@@ -77,6 +77,16 @@ button {
 }
 
 .mail-card { cursor: pointer; }
+.mail-card.unread { border: 1px solid var(--accent); }
+.mail-card.unread h3 { font-weight: 700; }
+.mail-card h3 { display: flex; align-items: center; gap: 8px; }
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
 
 .overlay {
   position: fixed;

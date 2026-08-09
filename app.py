@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).parent
 CONFIG_PATH = BASE_DIR / "config.json"
 STATE_PATH = BASE_DIR / "grades_state.json"
 MAIL_STATE_PATH = BASE_DIR / "mail_state.json"
+MAIL_READ_PATH = BASE_DIR / "mail_read.json"
 SUBS_PATH = BASE_DIR / "subscriptions.json"
 
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
@@ -71,7 +72,22 @@ def api_grades():
 @app.get("/api/messages")
 def api_messages():
     messages = load_json(MAIL_STATE_PATH, [])
+    read_ids = set(load_json(MAIL_READ_PATH, []))
+    for m in messages:
+        m["unread"] = m["id"] not in read_ids
     return jsonify({"messages": messages})
+
+
+@app.post("/api/messages/read")
+def api_mark_read():
+    body = request.get_json(force=True)
+    msg_id = body.get("id")
+    if not msg_id:
+        return jsonify({"error": "id manquant"}), 400
+    read_ids = set(load_json(MAIL_READ_PATH, []))
+    read_ids.add(msg_id)
+    save_json(MAIL_READ_PATH, sorted(read_ids))
+    return jsonify({"ok": True})
 
 
 @app.post("/api/subscribe")

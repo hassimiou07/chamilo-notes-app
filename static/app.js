@@ -48,10 +48,11 @@ async function loadMessages() {
 
   messages.forEach((m, idx) => {
     const card = document.createElement("div");
-    card.className = "card mail-card";
+    card.className = "card mail-card" + (m.unread ? " unread" : "");
+    card.dataset.idx = idx;
     const date = m.date ? new Date(m.date).toLocaleString("fr-FR") : "";
     card.innerHTML = `
-      <h3>${m.subject}</h3>
+      <h3>${m.unread ? '<span class="dot"></span>' : ""}${m.subject}</h3>
       <p class="epreuve">${m.from}</p>
       <p class="moyenne">${date}</p>
     `;
@@ -60,7 +61,7 @@ async function loadMessages() {
   });
 }
 
-function openMessage(idx) {
+async function openMessage(idx) {
   const m = currentMessages[idx];
   document.getElementById("detail-subject").textContent = m.subject;
   document.getElementById("detail-from").textContent = m.from;
@@ -69,6 +70,21 @@ function openMessage(idx) {
     : "";
   document.getElementById("detail-body").textContent = m.body;
   document.getElementById("message-detail").hidden = false;
+
+  if (m.unread) {
+    m.unread = false;
+    const card = document.querySelector(`.mail-card[data-idx="${idx}"]`);
+    if (card) {
+      card.classList.remove("unread");
+      const dot = card.querySelector(".dot");
+      if (dot) dot.remove();
+    }
+    fetch("/api/messages/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: m.id }),
+    });
+  }
 }
 
 const loadedTabs = new Set();
