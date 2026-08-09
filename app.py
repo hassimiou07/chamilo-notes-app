@@ -125,6 +125,16 @@ def send_push_to_all(title: str, body: str, notif_type: str = "general") -> None
     save_json(SUBS_PATH, still_valid)
 
 
+@app.post("/api/test-push")
+def api_test_push():
+    if CHECK_SECRET and request.headers.get("X-Check-Secret") != CHECK_SECRET:
+        return jsonify({"error": "unauthorized"}), 401
+    send_push_to_all("Nouvelle note : R2.99Test", "Epreuve : Test - Note : 18,00/20", notif_type="note")
+    send_push_to_all("Nouveau mail : Test messagerie", "De : Test <test@example.com>\nCeci est un test.", notif_type="mail")
+    subs_count = len(load_json(SUBS_PATH, []))
+    return jsonify({"sent_to": subs_count})
+
+
 @app.post("/api/check")
 def api_check():
     """A appeler periodiquement (cron externe) pour verifier les notes
