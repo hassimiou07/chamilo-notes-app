@@ -32,6 +32,77 @@ async function loadGrades() {
   }
 }
 
+let currentMessages = [];
+
+async function loadMessages() {
+  const res = await fetch("/api/messages");
+  const { messages } = await res.json();
+  currentMessages = messages;
+  const list = document.getElementById("messages-list");
+  list.innerHTML = "";
+
+  if (!messages.length) {
+    list.innerHTML = "<p class='empty'>Aucun message pour le moment.</p>";
+    return;
+  }
+
+  messages.forEach((m, idx) => {
+    const card = document.createElement("div");
+    card.className = "card mail-card";
+    const date = m.date ? new Date(m.date).toLocaleString("fr-FR") : "";
+    card.innerHTML = `
+      <h3>${m.subject}</h3>
+      <p class="epreuve">${m.from}</p>
+      <p class="moyenne">${date}</p>
+    `;
+    card.addEventListener("click", () => openMessage(idx));
+    list.appendChild(card);
+  });
+}
+
+function openMessage(idx) {
+  const m = currentMessages[idx];
+  document.getElementById("detail-subject").textContent = m.subject;
+  document.getElementById("detail-from").textContent = m.from;
+  document.getElementById("detail-date").textContent = m.date
+    ? new Date(m.date).toLocaleString("fr-FR")
+    : "";
+  document.getElementById("detail-body").textContent = m.body;
+  document.getElementById("message-detail").hidden = false;
+}
+
+const loadedTabs = new Set();
+
+function setupTabs() {
+  const tabs = document.querySelectorAll(".tab");
+  const title = document.getElementById("page-title");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", async () => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById("tab-notes").hidden = tab.dataset.tab !== "notes";
+      document.getElementById("tab-messagerie").hidden = tab.dataset.tab !== "messagerie";
+      title.textContent = tab.dataset.tab === "notes" ? "Mes Notes" : "Ma Messagerie";
+
+      if (!loadedTabs.has(tab.dataset.tab)) {
+        loadedTabs.add(tab.dataset.tab);
+        if (tab.dataset.tab === "messagerie") {
+          await loadMessages();
+        }
+      }
+    });
+  });
+}
+
+async function refreshCurrentTab() {
+  const activeTab = document.querySelector(".tab.active").dataset.tab;
+  if (activeTab === "notes") {
+    await loadGrades();
+  } else {
+    await loadMessages();
+  }
+}
+
 async function enableNotifications() {
   const status = document.getElementById("push-status");
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -66,7 +137,12 @@ window.addEventListener("load", async () => {
   if ("serviceWorker" in navigator) {
     await navigator.serviceWorker.register("/service-worker.js");
   }
+  setupTabs();
+  loadedTabs.add("notes");
   loadGrades();
   document.getElementById("enable-push").addEventListener("click", enableNotifications);
-  document.getElementById("refresh").addEventListener("click", loadGrades);
+  document.getElementById("refresh").addEventListener("click", refreshCurrentTab);
+  document.getElementById("close-detail").addEventListener("click", () => {
+    document.getElementById("message-detail").hidden = true;
+  });
 });

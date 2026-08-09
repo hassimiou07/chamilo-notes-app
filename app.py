@@ -6,10 +6,12 @@ from flask import Flask, jsonify, request, send_from_directory
 from pywebpush import webpush, WebPushException
 
 from chamilo_client import get_all_grades
+from mail_client import get_recent_messages
 
 BASE_DIR = Path(__file__).parent
 CONFIG_PATH = BASE_DIR / "config.json"
 STATE_PATH = BASE_DIR / "grades_state.json"
+MAIL_STATE_PATH = BASE_DIR / "mail_state.json"
 SUBS_PATH = BASE_DIR / "subscriptions.json"
 
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
@@ -33,6 +35,10 @@ def load_config() -> dict:
         "cas_login_url": os.environ.get(
             "CHAMILO_CAS_URL", "https://authentification.univ-grenoble-alpes.fr/login"
         ),
+        "email_username": os.environ.get("EMAIL_USERNAME", ""),
+        "email_password": os.environ.get("EMAIL_PASSWORD", ""),
+        "imap_host": os.environ.get("IMAP_HOST", "imap.partage.renater.fr"),
+        "imap_port": int(os.environ.get("IMAP_PORT", "993")),
     }
 
 
@@ -60,6 +66,12 @@ def vapid_public_key():
 def api_grades():
     grades = load_json(STATE_PATH, [])
     return jsonify({"grades": grades})
+
+
+@app.get("/api/messages")
+def api_messages():
+    messages = load_json(MAIL_STATE_PATH, [])
+    return jsonify({"messages": messages})
 
 
 @app.post("/api/subscribe")
@@ -115,7 +127,26 @@ def api_check():
             )
             send_push_to_all(title, body)
 
-    return jsonify({"new_grades": len(new_grades), "first_run": is_first_run})
+    current_messages = get_recent_messages(cfg)
+    previous_messages = load_json(MAIL_STATE_PATH, [])
+    previous_ids = {m["id"] for m in previous_messages}
+    new_messages = [m for m in current_messages if m["id"] not in previous_ids]
+
+    save_json(MAIL_STATE_PATH, current_messages)
+
+    mail_is_first_run = len(previous_messages) == 0
+    if not mail_is_first_run:
+        for msg in new_messages:
+            title = f"Nouveau mail : {msg['subject']}"
+            body = f"De : {msg['from']}\n{msg['body'][:300]}"
+            send_push_to_all(title, body)
+
+    return jsonify({
+        "new_grades": len(new_grades),
+        "first_run": is_first_run,
+        "new_messages": len(new_messages),
+        "mail_first_run": mail_is_first_run,
+    })
 
 
 if __name__ == "__main__":

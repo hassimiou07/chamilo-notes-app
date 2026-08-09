@@ -12,12 +12,36 @@
 </head>
 <body>
   <header>
-    <h1>Mes Notes IUT2</h1>
+    <h1 id="page-title">Mes Notes</h1>
     <button id="refresh">Actualiser</button>
   </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="notes">Notes</button>
+    <button class="tab" data-tab="messagerie">Messagerie</button>
+  </nav>
+
   <button id="enable-push">Activer les notifications</button>
   <p id="push-status"></p>
-  <div id="grades-list"></div>
+
+  <section id="tab-notes">
+    <div id="grades-list"></div>
+  </section>
+
+  <section id="tab-messagerie" hidden>
+    <div id="messages-list"></div>
+  </section>
+
+  <div id="message-detail" class="overlay" hidden>
+    <div class="overlay-content">
+      <button id="close-detail">&larr; Retour</button>
+      <h2 id="detail-subject"></h2>
+      <p id="detail-from" class="muted"></p>
+      <p id="detail-date" class="muted"></p>
+      <pre id="detail-body"></pre>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
