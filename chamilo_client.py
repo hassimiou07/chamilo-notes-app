@@ -83,8 +83,30 @@ def parse_grade_row(row: str):
     }
 
 
-def get_all_grades(cfg: dict) -> list[dict]:
-    """Se connecte a Chamilo et renvoie la liste structuree des notes."""
+def parse_ue_averages(raw_rows: list[str]) -> list[dict]:
+    """Trouve la ligne recapitulative des moyennes des 6 UE du semestre.
+
+    Format observe : "Intitulé | Coef | Note | 12.42 | 9.98 | 12.31 | 11.95 | 12.13 | 14.32"
+    ou les 6 dernieres valeurs sont les moyennes de UE2.1 a UE2.6, dans l'ordre.
+    """
+    for row in raw_rows:
+        cells = [c.strip() for c in row.split(" | ")]
+        if len(cells) >= 9 and cells[0] == "Intitulé":
+            values = cells[3:9]
+
+            def looks_numeric(v: str) -> bool:
+                return bool(v) and v.replace(",", "").replace(".", "").isdigit()
+
+            if all(looks_numeric(v) for v in values):
+                return [
+                    {"nom": f"UE2.{i + 1}", "moyenne": values[i]}
+                    for i in range(6)
+                ]
+    return []
+
+
+def get_fiche_data(cfg: dict) -> tuple[list[dict], list[dict]]:
+    """Se connecte a Chamilo et renvoie (notes, moyennes des 6 UE)."""
     session = requests.Session()
     cas_login(session, cfg)
     html = fetch_fiche_html(session, cfg)
@@ -95,4 +117,12 @@ def get_all_grades(cfg: dict) -> list[dict]:
         grade = parse_grade_row(row)
         if grade:
             grades.append(grade)
+
+    ue_averages = parse_ue_averages(raw_rows)
+    return grades, ue_averages
+
+
+def get_all_grades(cfg: dict) -> list[dict]:
+    """Se connecte a Chamilo et renvoie la liste structuree des notes."""
+    grades, _ = get_fiche_data(cfg)
     return grades

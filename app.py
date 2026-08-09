@@ -5,12 +5,13 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 from pywebpush import webpush, WebPushException
 
-from chamilo_client import get_all_grades
+from chamilo_client import get_fiche_data
 from mail_client import get_recent_messages
 
 BASE_DIR = Path(__file__).parent
 CONFIG_PATH = BASE_DIR / "config.json"
 STATE_PATH = BASE_DIR / "grades_state.json"
+UE_STATE_PATH = BASE_DIR / "ue_state.json"
 MAIL_STATE_PATH = BASE_DIR / "mail_state.json"
 MAIL_READ_PATH = BASE_DIR / "mail_read.json"
 SUBS_PATH = BASE_DIR / "subscriptions.json"
@@ -69,6 +70,12 @@ def api_grades():
     return jsonify({"grades": grades})
 
 
+@app.get("/api/ue-averages")
+def api_ue_averages():
+    ue_averages = load_json(UE_STATE_PATH, [])
+    return jsonify({"ue_averages": ue_averages})
+
+
 @app.get("/api/messages")
 def api_messages():
     messages = load_json(MAIL_STATE_PATH, [])
@@ -125,13 +132,14 @@ def api_check():
         return jsonify({"error": "unauthorized"}), 401
 
     cfg = load_config()
-    current_grades = get_all_grades(cfg)
+    current_grades, ue_averages = get_fiche_data(cfg)
     previous_grades = load_json(STATE_PATH, [])
 
     previous_raw = {g["raw"] for g in previous_grades}
     new_grades = [g for g in current_grades if g["raw"] not in previous_raw]
 
     save_json(STATE_PATH, current_grades)
+    save_json(UE_STATE_PATH, ue_averages)
 
     is_first_run = len(previous_grades) == 0
     if not is_first_run:

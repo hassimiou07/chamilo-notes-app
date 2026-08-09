@@ -5,7 +5,35 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
+function ueColor(moyenneStr) {
+  const val = parseFloat(moyenneStr.replace(",", "."));
+  if (isNaN(val)) return "";
+  if (val < 8) return "ue-red";
+  if (val < 10) return "ue-orange";
+  return "ue-green";
+}
+
+async function loadUeAverages() {
+  const res = await fetch("/api/ue-averages");
+  const { ue_averages } = await res.json();
+  const container = document.getElementById("ue-table");
+  container.innerHTML = "";
+
+  if (!ue_averages.length) return;
+
+  const table = document.createElement("div");
+  table.className = "ue-grid";
+  for (const ue of ue_averages) {
+    const cell = document.createElement("div");
+    cell.className = "ue-cell " + ueColor(ue.moyenne);
+    cell.innerHTML = `<span class="ue-nom">${ue.nom}</span><span class="ue-moy">${ue.moyenne}</span>`;
+    table.appendChild(cell);
+  }
+  container.appendChild(table);
+}
+
 async function loadGrades() {
+  await loadUeAverages();
   const res = await fetch("/api/grades");
   const { grades } = await res.json();
   const list = document.getElementById("grades-list");

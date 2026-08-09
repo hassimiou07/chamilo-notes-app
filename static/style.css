@@ -55,6 +55,31 @@ button {
 .moyenne { margin: 8px 0 0; font-size: 0.85rem; color: var(--muted); }
 .empty { color: var(--muted); text-align: center; margin-top: 40px; }
 
+.ue-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ue-cell {
+  border-radius: 12px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.ue-cell .ue-nom { font-size: 0.75rem; opacity: 0.85; }
+.ue-cell .ue-moy { font-size: 1.2rem; }
+
+.ue-red { background: #ef4444; }
+.ue-orange { background: #f97316; }
+.ue-green { background: #22c55e; }
+
 .tabs {
   display: flex;
   gap: 8px;
