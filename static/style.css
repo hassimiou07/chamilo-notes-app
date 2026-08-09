@@ -119,7 +119,14 @@ button {
   background: var(--bg);
   z-index: 10;
   overflow-y: auto;
-  padding: 16px;
+  padding: calc(env(safe-area-inset-top) + 36px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  touch-action: pan-y;
+}
+
+#close-detail {
+  position: sticky;
+  top: 0;
+  margin-bottom: 8px;
 }
 
 .overlay-content h2 { margin: 12px 0 4px; }

@@ -189,4 +189,31 @@ window.addEventListener("load", async () => {
   document.getElementById("close-detail").addEventListener("click", () => {
     document.getElementById("message-detail").hidden = true;
   });
+  setupSwipeToClose();
 });
+
+function setupSwipeToClose() {
+  const overlay = document.getElementById("message-detail");
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+
+  overlay.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = startX < 60;
+  }, { passive: true });
+
+  overlay.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - startX;
+    const deltaY = Math.abs(endY - startY);
+
+    if (deltaX > 80 && deltaY < 60) {
+      overlay.hidden = true;
+    }
+    tracking = false;
+  }, { passive: true });
+}

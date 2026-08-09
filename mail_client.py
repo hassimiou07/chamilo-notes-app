@@ -54,6 +54,25 @@ def _get_body(msg: email.message.Message) -> str:
         return payload.decode(charset, errors="replace").strip()
 
 
+IGNORED_SENDER_KEYWORDS = ["gitlab"]
+IGNORED_SUBJECT_KEYWORDS = [
+    "ssh key",
+    "personal access token",
+    "access tokens have expired",
+    "will expire in",
+]
+
+
+def _is_ignored(sender: str, subject: str) -> bool:
+    sender_l = sender.lower()
+    subject_l = subject.lower()
+    if any(kw in sender_l for kw in IGNORED_SENDER_KEYWORDS):
+        return True
+    if any(kw in subject_l for kw in IGNORED_SUBJECT_KEYWORDS):
+        return True
+    return False
+
+
 def get_recent_messages(cfg: dict, limit: int = 30) -> list[dict]:
     conn = imaplib.IMAP4_SSL(cfg["imap_host"], cfg.get("imap_port", 993))
     try:
@@ -64,12 +83,17 @@ def get_recent_messages(cfg: dict, limit: int = 30) -> list[dict]:
         if status != "OK":
             return []
 
+        # On recupere une fenetre plus large que la limite finale car
+        # certains messages (notifications automatiques) seront filtres.
         ids = data[0].split()
-        ids = ids[-limit:] if len(ids) > limit else ids
+        ids = ids[-(limit * 3):] if len(ids) > limit * 3 else ids
         ids.reverse()
 
         messages = []
         for msg_id in ids:
+            if len(messages) >= limit:
+                break
+
             status, msg_data = conn.fetch(msg_id, "(RFC822)")
             if status != "OK" or not msg_data or msg_data[0] is None:
                 continue
@@ -83,12 +107,18 @@ def get_recent_messages(cfg: dict, limit: int = 30) -> list[dict]:
                 date_iso = date_str
 
             message_id = msg.get("Message-ID", str(msg_id))
+            sender = _decode(msg.get("From", ""))
+            subject = _decode(msg.get("Subject", "(sans objet)"))
+
+            if _is_ignored(sender, subject):
+                continue
+
             body = _get_body(msg)
 
             messages.append({
                 "id": message_id,
-                "from": _decode(msg.get("From", "")),
-                "subject": _decode(msg.get("Subject", "(sans objet)")),
+                "from": sender,
+                "subject": subject,
                 "date": date_iso,
                 "body": body[:20000],
             })
