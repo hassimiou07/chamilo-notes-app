@@ -147,6 +147,25 @@ async function refreshCurrentTab() {
   }
 }
 
+async function syncNow() {
+  const btn = document.getElementById("sync");
+  const status = document.getElementById("sync-status");
+  btn.disabled = true;
+  status.textContent = "Synchronisation en cours (le serveur peut mettre jusqu'a 1 min a se reveiller)...";
+
+  try {
+    const res = await fetch("/api/sync", { method: "POST" });
+    if (!res.ok) throw new Error("Echec de la synchronisation");
+    const data = await res.json();
+    await refreshCurrentTab();
+    status.textContent = `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_messages} nouveau(x) message(s).`;
+  } catch (err) {
+    status.textContent = "Erreur lors de la synchronisation. Reessaie dans quelques secondes.";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function enableNotifications() {
   const status = document.getElementById("push-status");
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -186,6 +205,7 @@ window.addEventListener("load", async () => {
   loadGrades();
   document.getElementById("enable-push").addEventListener("click", enableNotifications);
   document.getElementById("refresh").addEventListener("click", refreshCurrentTab);
+  document.getElementById("sync").addEventListener("click", syncNow);
   document.getElementById("close-detail").addEventListener("click", () => {
     document.getElementById("message-detail").hidden = true;
   });

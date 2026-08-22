@@ -4,5 +4,6 @@ mail_state.json
 mail_read.json
 subscriptions.json
 server.log
+server*.log
 __pycache__/
 ue_state.json
