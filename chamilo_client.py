@@ -1,5 +1,8 @@
 """Logique de connexion CAS + extraction des notes, partagee entre
 le script en ligne de commande et l'appli web."""
+import re
+from collections import Counter
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -83,11 +86,24 @@ def parse_grade_row(row: str):
     }
 
 
-def parse_ue_averages(raw_rows: list[str]) -> list[dict]:
+def detect_semestre(grades: list[dict]) -> int:
+    """Deduit le numero du semestre en cours a partir des codes de matiere
+    (ex: R3.01, SAE3.02, P3.01 -> semestre 3). Retombe sur 2 si rien trouve."""
+    numeros = []
+    for grade in grades:
+        m = re.match(r"^(?:R|SAE|P)(\d)", grade["matiere"])
+        if m:
+            numeros.append(int(m.group(1)))
+    if not numeros:
+        return 2
+    return Counter(numeros).most_common(1)[0][0]
+
+
+def parse_ue_averages(raw_rows: list[str], semestre: int = 2) -> list[dict]:
     """Trouve la ligne recapitulative des moyennes des 6 UE du semestre.
 
     Format observe : "Intitulé | Coef | Note | 12.42 | 9.98 | 12.31 | 11.95 | 12.13 | 14.32"
-    ou les 6 dernieres valeurs sont les moyennes de UE2.1 a UE2.6, dans l'ordre.
+    ou les 6 dernieres valeurs sont les moyennes de UE{semestre}.1 a .6, dans l'ordre.
     """
     for row in raw_rows:
         cells = [c.strip() for c in row.split(" | ")]
@@ -99,7 +115,7 @@ def parse_ue_averages(raw_rows: list[str]) -> list[dict]:
 
             if all(looks_numeric(v) for v in values):
                 return [
-                    {"nom": f"UE2.{i + 1}", "moyenne": values[i]}
+                    {"nom": f"UE{semestre}.{i + 1}", "moyenne": values[i]}
                     for i in range(6)
                 ]
     return []
@@ -118,7 +134,8 @@ def get_fiche_data(cfg: dict) -> tuple[list[dict], list[dict]]:
         if grade:
             grades.append(grade)
 
-    ue_averages = parse_ue_averages(raw_rows)
+    semestre = detect_semestre(grades)
+    ue_averages = parse_ue_averages(raw_rows, semestre)
     return grades, ue_averages
 
 
