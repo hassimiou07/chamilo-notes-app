@@ -149,26 +149,40 @@ def run_check() -> dict:
             )
             send_push_to_all(title, body, notif_type="note")
 
-    current_messages = get_recent_messages(cfg)
-    previous_messages = load_json(MAIL_STATE_KEY, [])
-    previous_ids = {m["id"] for m in previous_messages}
-    new_messages = [m for m in current_messages if m["id"] not in previous_ids]
-
-    save_json(MAIL_STATE_KEY, current_messages)
-
-    mail_is_first_run = len(previous_messages) == 0
-    if not mail_is_first_run:
-        for msg in new_messages:
-            title = f"Nouveau mail : {msg['subject']}"
-            body = f"De : {msg['from']}\n{msg['body'][:300]}"
-            send_push_to_all(title, body, notif_type="mail")
-
-    return {
+    # La messagerie est isolee : le serveur IMAP de l'universite coupe
+    # regulierement les connexions venant d'un hebergeur, et une panne de
+    # mail ne doit pas faire echouer la recuperation des notes, qui est
+    # la raison d'etre de l'app.
+    resultat = {
         "new_grades": len(new_grades),
         "first_run": is_first_run,
-        "new_messages": len(new_messages),
-        "mail_first_run": mail_is_first_run,
+        "new_messages": 0,
+        "mail_first_run": False,
+        "mail_error": None,
     }
+
+    try:
+        current_messages = get_recent_messages(cfg)
+        previous_messages = load_json(MAIL_STATE_KEY, [])
+        previous_ids = {m["id"] for m in previous_messages}
+        new_messages = [m for m in current_messages if m["id"] not in previous_ids]
+
+        save_json(MAIL_STATE_KEY, current_messages)
+
+        mail_is_first_run = len(previous_messages) == 0
+        if not mail_is_first_run:
+            for msg in new_messages:
+                title = f"Nouveau mail : {msg['subject']}"
+                body = f"De : {msg['from']}\n{msg['body'][:300]}"
+                send_push_to_all(title, body, notif_type="mail")
+
+        resultat["new_messages"] = len(new_messages)
+        resultat["mail_first_run"] = mail_is_first_run
+    except Exception as exc:
+        app.logger.exception("Recuperation des messages echouee")
+        resultat["mail_error"] = f"{type(exc).__name__} : {exc}"
+
+    return resultat
 
 
 def _run_check_json():

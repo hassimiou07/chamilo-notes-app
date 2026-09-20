@@ -74,9 +74,26 @@ def _is_ignored(sender: str, subject: str) -> bool:
 
 
 def get_recent_messages(cfg: dict, limit: int = 30) -> list[dict]:
-    conn = imaplib.IMAP4_SSL(cfg["imap_host"], cfg.get("imap_port", 993))
+    host = cfg["imap_host"]
     try:
-        conn.login(cfg["email_username"], cfg["email_password"])
+        # Sans timeout, une connexion qui ne repond pas bloque la synchro
+        # jusqu'au delai du proxy.
+        conn = imaplib.IMAP4_SSL(host, cfg.get("imap_port", 993), timeout=30)
+    except (ConnectionResetError, OSError) as exc:
+        raise RuntimeError(
+            f"{host} a coupe la connexion ({exc}). Les serveurs de messagerie "
+            "de l'universite refusent souvent les connexions venant d'un "
+            "hebergeur : la synchro des mails ne marchera que depuis ton reseau."
+        ) from exc
+
+    try:
+        try:
+            conn.login(cfg["email_username"], cfg["email_password"])
+        except imaplib.IMAP4.error as exc:
+            raise RuntimeError(
+                f"Identifiants de messagerie refuses par {host} ({exc}). "
+                "Mot de passe change ?"
+            ) from exc
         conn.select("INBOX")
 
         status, data = conn.search(None, "ALL")
