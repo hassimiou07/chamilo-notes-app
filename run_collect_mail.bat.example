@@ -1,0 +1,16 @@
+@echo off
+REM Collecte les mails depuis le reseau de la maison et les depose dans
+REM Upstash, ou l'app deployee va les lire. A planifier dans le
+REM Planificateur de taches Windows (toutes les 30 min par exemple).
+REM
+REM Renseigne les deux valeurs ci-dessous avec celles de ton hebergeur
+REM (variables d'environnement du service), puis teste le script a la
+REM main avant de creer la tache planifiee.
+
+set UPSTASH_REDIS_REST_URL=
+set UPSTASH_REDIS_REST_TOKEN=
+set VAPID_PRIVATE_KEY=
+set VAPID_CLAIM_EMAIL=
+
+cd /d "%~dp0"
+python collect_mail.py >> collect_mail.log 2>&1

@@ -12,3 +12,5 @@ fiche_debug.html
 rows_debug.txt
 .claude/
 *.bak
+run_collect_mail.bat
+collect_mail.log

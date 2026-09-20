@@ -23,6 +23,14 @@ VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
 VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "mailto:example@example.com")
 CHECK_SECRET = os.environ.get("CHECK_SECRET", "")
+# Sur l'hebergeur, l'IMAP de l'universite refuse la connexion : les mails
+# sont deposes par collect_mail.py depuis le reseau de la maison. Mettre
+# DISABLE_SERVER_MAIL=1 evite une tentative vouee a echouer a chaque synchro.
+SERVER_MAIL_DISABLED = os.environ.get("DISABLE_SERVER_MAIL", "").lower() in (
+    "1",
+    "true",
+    "oui",
+)
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -160,6 +168,10 @@ def run_check() -> dict:
         "mail_first_run": False,
         "mail_error": None,
     }
+
+    if SERVER_MAIL_DISABLED:
+        resultat["mail_source"] = "collecteur local"
+        return resultat
 
     try:
         current_messages = get_recent_messages(cfg)

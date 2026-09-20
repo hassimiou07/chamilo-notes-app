@@ -217,9 +217,13 @@ async function syncNow() {
     await refreshCurrentTab();
     // Les notes peuvent etre a jour meme si la messagerie a echoue :
     // on le dit, au lieu de laisser croire a une synchro complete.
-    status.textContent = data.mail_error
-      ? `Notes a jour (${data.new_grades} nouvelle(s)). Messagerie indisponible : ${data.mail_error}`
-      : `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_messages} nouveau(x) message(s).`;
+    if (data.mail_error) {
+      status.textContent = `Notes a jour (${data.new_grades} nouvelle(s)). Messagerie indisponible : ${data.mail_error}`;
+    } else if (data.mail_source) {
+      status.textContent = `Notes a jour (${data.new_grades} nouvelle(s)). Messagerie alimentee par le ${data.mail_source}.`;
+    } else {
+      status.textContent = `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_messages} nouveau(x) message(s).`;
+    }
   } catch (err) {
     // Afficher la cause reelle : sans elle, impossible de distinguer un
     // mot de passe expire d'un serveur endormi ou d'une coupure reseau.
