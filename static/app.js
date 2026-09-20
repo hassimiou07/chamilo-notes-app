@@ -210,12 +210,21 @@ async function syncNow() {
 
   try {
     const res = await fetch("/api/sync", { method: "POST" });
-    if (!res.ok) throw new Error("Echec de la synchronisation");
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `le serveur a repondu ${res.status}`);
+    }
     await refreshCurrentTab();
     status.textContent = `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_messages} nouveau(x) message(s).`;
   } catch (err) {
-    status.textContent = "Erreur lors de la synchronisation. Reessaie dans quelques secondes.";
+    // Afficher la cause reelle : sans elle, impossible de distinguer un
+    // mot de passe expire d'un serveur endormi ou d'une coupure reseau.
+    const cause =
+      err instanceof TypeError
+        ? "serveur injoignable (reseau ou application endormie)"
+        : err.message;
+    status.textContent = `Erreur de synchronisation : ${cause}`;
+    console.error("Synchronisation echouee :", err);
   } finally {
     btn.disabled = false;
   }

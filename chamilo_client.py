@@ -40,6 +40,11 @@ def cas_login(session: requests.Session, cfg: dict) -> None:
     post_url = requests.compat.urljoin(login_page.url, action)
 
     resp = session.post(post_url, data=payload, timeout=20)
+    if resp.status_code in (401, 403):
+        raise RuntimeError(
+            "Le CAS a refuse les identifiants (mot de passe UGA change ou expire ?). "
+            "Mets a jour username/password dans la configuration."
+        )
     resp.raise_for_status()
 
 

@@ -171,20 +171,31 @@ def run_check() -> dict:
     }
 
 
+def _run_check_json():
+    """Renvoie le resultat de run_check, ou la cause reelle de l'echec.
+    Sans ca, l'app n'affichait qu'un "erreur lors de la synchronisation"
+    generique et la vraie exception restait invisible cote client."""
+    try:
+        return jsonify(run_check())
+    except Exception as exc:
+        app.logger.exception("Synchronisation echouee")
+        return jsonify({"error": f"{type(exc).__name__} : {exc}"}), 500
+
+
 @app.post("/api/check")
 def api_check():
     """A appeler periodiquement (cron externe) pour verifier les notes
     et notifier les abonnes en cas de changement."""
     if CHECK_SECRET and request.headers.get("X-Check-Secret") != CHECK_SECRET:
         return jsonify({"error": "unauthorized"}), 401
-    return jsonify(run_check())
+    return _run_check_json()
 
 
 @app.post("/api/sync")
 def api_sync():
     """Synchronisation manuelle declenchee depuis le bouton de l'app
     (reveille le serveur Render s'il etait en veille et recharge les donnees)."""
-    return jsonify(run_check())
+    return _run_check_json()
 
 
 if __name__ == "__main__":
