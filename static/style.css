@@ -138,3 +138,66 @@ button {
   margin-top: 16px;
   line-height: 1.5;
 }
+
+/* ---- onglet Planning ---- */
+#tab-planning {
+  padding: 0;
+}
+#planning-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 190px);
+  min-height: 420px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* ---- modules du semestre (notes pas encore tombees) ---- */
+.section-titre {
+  font-size: 1rem;
+  margin: 22px 0 10px;
+  opacity: 0.75;
+}
+#semestre-info {
+  margin: 4px 0 12px;
+}
+.card.module h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+.module-nom {
+  font-weight: 400;
+  font-size: 0.86em;
+  opacity: 0.8;
+}
+.card.module .statut {
+  margin: 4px 0 8px;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+.card.module.en-attente {
+  opacity: 0.85;
+  border-left: 3px solid #b0b6c0;
+}
+.ue-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ue-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: 0.85;
+}
+.ue-chip b {
+  font-size: 0.82rem;
+}

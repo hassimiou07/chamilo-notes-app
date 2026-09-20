@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Ma semaine type BUT2</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    --page:#fafbfc;
+    --panel:#ffffff;
+    --panel-2:#eef1f5;
+    --ink:#171c23;
+    --ink-soft:#5c6675;
+    --hair:#e1e5ea;
+    --accent:#3452c4;
+    --c-cours:#5b6b7a;
+    --c-revi:#3452c4;
+    --c-nuit:#6b3fa0;
+    --c-tuto:#0f7a6b;
+    --c-basket:#c2551f;
+    --c-repos:#7f8794;
+    --c-alert:#b3261e;
+    --alert-bg:#fdf2f1;
+    --font-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+    --font-body:"Figtree",system-ui,-apple-system,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --page:#14181f;
+      --panel:#1b212b;
+      --panel-2:#232b37;
+      --ink:#e8ebef;
+      --ink-soft:#9aa4b2;
+      --hair:#2c333f;
+      --accent:#8ba1f0;
+      --c-cours:#8896a6;
+      --c-revi:#8ba1f0;
+      --c-nuit:#b18ce0;
+      --c-tuto:#3bab98;
+      --c-basket:#e2814a;
+      --c-repos:#949eac;
+      --c-alert:#f2877d;
+      --alert-bg:#2a1d1e;
+    }
+  }
+  :root[data-theme="dark"]{
+    --page:#14181f;
+    --panel:#1b212b;
+    --panel-2:#232b37;
+    --ink:#e8ebef;
+    --ink-soft:#9aa4b2;
+    --hair:#2c333f;
+    --accent:#8ba1f0;
+    --c-cours:#8896a6;
+    --c-revi:#8ba1f0;
+    --c-nuit:#b18ce0;
+    --c-tuto:#3bab98;
+    --c-basket:#e2814a;
+    --c-repos:#949eac;
+    --c-alert:#f2877d;
+    --alert-bg:#2a1d1e;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--page);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.5;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1000px;
+    margin:0 auto;
+    padding-block:40px 64px;
+    padding-inline:24px;
+    border-top:6px double var(--accent);
+  }
+
+  /* ---------- header ---------- */
+  .hero{margin-bottom:28px}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(2rem,5vw,2.9rem);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    margin:0 0 12px;
+    text-wrap:balance;
+  }
+  .lede{
+    margin:0;
+    max-width:60ch;
+    color:var(--ink-soft);
+    font-size:1.02rem;
+  }
+  .lede b{color:var(--ink);font-weight:600}
+
+  .stats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:22px;
+  }
+  .stat{
+    flex:1 1 170px;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .stat .n{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:-.01em;
+    display:block;
+    font-variant-numeric:tabular-nums;
+  }
+  .stat .k{
+    font-family:var(--font-mono);
+    font-size:.68rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .stat.warn{border-color:var(--c-alert);background:var(--alert-bg)}
+  .stat.warn .n{color:var(--c-alert)}
+
+  /* ---------- alert ---------- */
+  .alert{
+    margin-top:26px;
+    border-left:4px solid var(--c-alert);
+    background:var(--alert-bg);
+    padding:16px 18px;
+    border-radius:0 8px 8px 0;
+  }
+  .alert h2{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--c-alert);
+    margin:0 0 8px;
+  }
+  .alert p{margin:0 0 8px;font-size:.92rem;color:var(--ink)}
+  .alert p:last-child{margin-bottom:0}
+  .alert ul{margin:8px 0 0;padding-left:1.1rem;font-size:.9rem;color:var(--ink-soft)}
+  .alert li{margin-bottom:4px}
+  .alert b{color:var(--ink);font-weight:600}
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 18px;
+    margin:26px 0 8px;
+    padding-block:12px;
+    padding-inline:4px;
+    border-top:1px solid var(--hair);
+    border-bottom:1px solid var(--hair);
+  }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .tag::before{
+    content:"";
+    width:11px;height:11px;
+    border-radius:3px;
+    background:var(--d);
+  }
+
+  /* ---------- week ---------- */
+  .week{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:26px 40px;
+    margin-top:30px;
+  }
+  .day{break-inside:avoid}
+  .day-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    padding-bottom:7px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:6px;
+  }
+  .day-name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.3rem;
+    letter-spacing:-.01em;
+  }
+  .day-meta{
+    font-family:var(--font-mono);
+    font-size:.74rem;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .day-meta b{color:var(--c-revi);font-weight:500}
+  .day.nuit-day .day-head{border-bottom-color:var(--c-nuit)}
+  .day.big .day-head{border-bottom-color:var(--c-revi)}
+
+  .block{
+    display:grid;
+    grid-template-columns:5rem 1fr;
+    gap:.85rem;
+    padding-block:.55rem;
+    border-top:1px solid var(--hair);
+  }
+  .day .block:first-of-type{border-top:0}
+  .time{
+    font-family:var(--font-mono);
+    font-size:.78rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink-soft);
+    padding-top:.12rem;
+  }
+  .act{
+    border-left:3px solid var(--d,var(--c-repos));
+    padding-left:.7rem;
+  }
+  .act strong{
+    display:block;
+    font-weight:500;
+    font-size:.96rem;
+  }
+  .act span{
+    display:block;
+    font-size:.8rem;
+    color:var(--ink-soft);
+  }
+  .cours{--d:var(--c-cours)}
+  .revi{--d:var(--c-revi)}
+  .nuit{--d:var(--c-nuit)}
+  .tuto{--d:var(--c-tuto)}
+  .basket{--d:var(--c-basket)}
+  .repos{--d:var(--c-repos)}
+  .act.revi strong{color:var(--c-revi)}
+  .act.nuit strong{color:var(--c-nuit)}
+  .act.tuto strong{color:var(--c-tuto)}
+
+  /* créneau qui ne tombe pas toutes les semaines */
+  .block.maybe .act{border-left-style:dashed}
+  .block.maybe .time{font-style:italic}
+  .rotation{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:.62rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--c-tuto);
+    border:1px solid var(--c-tuto);
+    border-radius:4px;
+    padding:1px 5px;
+    margin-left:6px;
+    vertical-align:2px;
+  }
+
+  /* ---------- principles ---------- */
+  .principles{
+    margin-top:40px;
+    padding-top:22px;
+    border-top:6px double var(--accent);
+  }
+  .principles h2{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.25rem;
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+  }
+  .rules{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px 28px;
+    margin:0;
+    padding:0;
+    counter-reset:r;
+    list-style:none;
+  }
+  .rules li{
+    position:relative;
+    padding-left:2.1rem;
+    font-size:.92rem;
+    color:var(--ink-soft);
+    break-inside:avoid;
+  }
+  .rules li b{color:var(--ink);font-weight:600}
+  .rules li::before{
+    counter-increment:r;
+    content:counter(r,decimal-leading-zero);
+    position:absolute;
+    left:0;top:.05rem;
+    font-family:var(--font-mono);
+    font-size:.78rem;
+    color:var(--accent);
+  }
+
+  .print-btn{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    background:var(--accent);
+    color:#fff;
+    border:0;
+    border-radius:8px;
+    padding:11px 16px;
+    cursor:pointer;
+    box-shadow:0 6px 20px rgba(0,0,0,.18);
+  }
+  .print-btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+  @media (max-width:760px){
+    .week,.rules{grid-template-columns:1fr}
+  }
+
+  /* ---------- print ---------- */
+  @media print{
+    :root{
+      --page:#ffffff;--panel:#ffffff;--panel-2:#f1f3f6;
+      --ink:#12161c;--ink-soft:#4b5563;--hair:#d7dce2;--accent:#2c49b8;
+      --c-cours:#546374;--c-revi:#2c49b8;--c-nuit:#5c3590;
+      --c-tuto:#0b6d60;--c-basket:#b34e1c;--c-repos:#77808d;
+      --c-alert:#9c211b;--alert-bg:#fbeeed;
+    }
+    @page{size:A4 portrait;margin:13mm}
+    body{font-size:10.5pt}
+    .wrap{max-width:none;padding:0;border-top-width:5px}
+    .print-btn{display:none}
+    .stat,.act,.day,.tag,.alert{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .week{gap:16px 30px}
+    h1{font-size:24pt}
+    .day-name{font-size:14pt}
+  }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Planning hebdo · BUT2 Informatique · Saison 26–27 · v2</p>
+    <h1>Ma semaine type</h1>
+    <p class="lede">Trois nuits d'inventaire — <b>mardi, mercredi, vendredi, 19 h → 4 h</b> — remplacent l'épicerie. Le basket passe au <b>lundi et jeudi soir</b>, le tutorat BUT1 reste (jeudi 17 h 30, plus un samedi sur trois). Le volume de révision se joue désormais sur trois créneaux : la <b>pause de 12 h 30</b> les jours de cours pleins, le <b>jeudi après-midi libre</b>, et les <b>gros blocs du week-end</b>.</p>
+
+    <div class="stats">
+      <div class="stat"><span class="n">17 h 20</span><span class="k">Révision cumulée / semaine</span></div>
+      <div class="stat"><span class="n">1 h 30</span><span class="k">Minimum tenu chaque jour</span></div>
+      <div class="stat"><span class="n">10 h 50</span><span class="k">Dont jeudi + week-end</span></div>
+      <div class="stat warn"><span class="n">≈ 3 h</span><span class="k">Sommeil · nuits mar &amp; mer</span></div>
+    </div>
+  </header>
+
+  <section class="alert">
+    <h2>Le point de rupture : mardi → mercredi</h2>
+    <p>Deux nuits d'inventaire <b>consécutives</b> suivies de journées de cours à 8 h, ça fait environ <b>3 h de sommeil deux nuits de suite</b>. Ce n'est pas tenable plus de deux ou trois semaines : au-delà, c'est la mémorisation qui lâche — donc précisément ce que la révision est censée construire.</p>
+    <p>Le planning ci-dessous est bâti sur ce que tu m'as donné. Mais si tu peux bouger une seule chose, bouge celle-là :</p>
+    <ul>
+      <li><b>Option A (la meilleure)</b> — déplacer l'inventaire du <b>mercredi</b> vers le <b>samedi nuit</b>. Le dimanche matin devient une vraie grasse matinée, et tu récupères une nuit complète en semaine.</li>
+      <li><b>Option B</b> — demander des shifts qui finissent à <b>2 h</b> au lieu de 4 h les nuits où tu as cours le lendemain.</li>
+      <li><b>Option C</b> — garder les trois nuits, mais seulement sur les semaines sans rendu ni partiel.</li>
+    </ul>
+    <p>Deuxième collision, plus rare mais réelle : <b>le samedi de tutorat tombe après la nuit d'inventaire du vendredi</b>. Debout à 8 h après t'être couché à 4 h 30, puis match l'après-midi. Une semaine sur trois, pose ta soirée du vendredi — ou demande à passer ce tutorat en fin de matinée.</p>
+  </section>
+
+  <div class="legend">
+    <span class="tag" style="--d:var(--c-cours)">Cours</span>
+    <span class="tag" style="--d:var(--c-revi)">Révision</span>
+    <span class="tag" style="--d:var(--c-nuit)">Inventaire — nuit</span>
+    <span class="tag" style="--d:var(--c-tuto)">Tutorat BUT1</span>
+    <span class="tag" style="--d:var(--c-basket)">Basket</span>
+    <span class="tag" style="--d:var(--c-repos)">Trajet / pause / sommeil</span>
+  </div>
+
+  <section class="week">
+
+    <article class="day">
+      <div class="day-head"><span class="day-name">Lundi</span><span class="day-meta">révision <b>2 h 00</b> · basket</span></div>
+      <div class="block"><span class="time">08:00</span><div class="act cours"><strong>Cours — IUT2</strong><span>matinée jusqu'à 12 h 30</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act revi"><strong>Session midi — 45 min</strong><span>fiches, flashcards, exos courts · rien de neuf</span></div></div>
+      <div class="block"><span class="time">13:20</span><div class="act cours"><strong>Cours — IUT2</strong><span>jusqu'à 17 h 30</span></div></div>
+      <div class="block"><span class="time">18:00</span><div class="act repos"><strong>Retour · dîner</strong></div></div>
+      <div class="block"><span class="time">18:30</span><div class="act revi"><strong>Bloc principal — 1 h 15</strong><span>la vraie session de fond de la semaine</span></div></div>
+      <div class="block"><span class="time">19:45</span><div class="act repos"><strong>Trajet salle</strong></div></div>
+      <div class="block"><span class="time">20:00</span><div class="act basket"><strong>Entraînement basket</strong><span>jusqu'à 22 h 00</span></div></div>
+      <div class="block"><span class="time">23:00</span><div class="act repos"><strong>Retour · douche · extinction 23 h 30</strong><span>dernière nuit complète avant les deux nuits d'inventaire</span></div></div>
+    </article>
+
+    <article class="day nuit-day">
+      <div class="day-head"><span class="day-name">Mardi</span><span class="day-meta">révision <b>1 h 30</b> · nuit</span></div>
+      <div class="block"><span class="time">08:00</span><div class="act cours"><strong>Cours — IUT2</strong><span>matinée jusqu'à 12 h 30</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act revi"><strong>Session midi — 45 min</strong><span>non négociable : c'est la moitié de ton quota du jour</span></div></div>
+      <div class="block"><span class="time">13:20</span><div class="act cours"><strong>Cours — IUT2</strong><span>jusqu'à 17 h 30</span></div></div>
+      <div class="block"><span class="time">17:45</span><div class="act revi"><strong>Session avant shift — 45 min</strong><span>à la BU ou dès l'arrivée · minuteur, aucun chapitre neuf</span></div></div>
+      <div class="block"><span class="time">18:30</span><div class="act repos"><strong>Vrai repas · trajet</strong><span>manger avant, pas pendant : 9 h de shift derrière</span></div></div>
+      <div class="block"><span class="time">19:00</span><div class="act nuit"><strong>Inventaire — nuit</strong><span>jusqu'à ~4 h 00 · sieste de 20 min à la pause, pas le téléphone</span></div></div>
+      <div class="block"><span class="time">04:30</span><div class="act repos"><strong>Retour · coucher immédiat</strong><span>zéro écran · réveil 7 h 15</span></div></div>
+    </article>
+
+    <article class="day nuit-day">
+      <div class="day-head"><span class="day-name">Mercredi</span><span class="day-meta">révision <b>1 h 30</b> · nuit</span></div>
+      <div class="block"><span class="time">08:00</span><div class="act cours"><strong>Cours — IUT2</strong><span>journée sur ~3 h de sommeil · vise la présence, pas la performance</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act revi"><strong>Session midi — 45 min</strong><span>relecture active uniquement · aucune notion nouvelle</span></div></div>
+      <div class="block"><span class="time">13:20</span><div class="act cours"><strong>Cours — IUT2</strong><span>jusqu'à 17 h 30</span></div></div>
+      <div class="block"><span class="time">17:45</span><div class="act revi"><strong>Session avant shift — 45 min</strong></div></div>
+      <div class="block"><span class="time">18:30</span><div class="act repos"><strong>Repas · trajet</strong></div></div>
+      <div class="block"><span class="time">19:00</span><div class="act nuit"><strong>Inventaire — nuit</strong><span>jusqu'à ~4 h 00 · sieste de 20 min à la pause</span></div></div>
+      <div class="block"><span class="time">04:30</span><div class="act repos"><strong>Coucher immédiat</strong><span>ce soir tu récupères — tiens jusque-là</span></div></div>
+    </article>
+
+    <article class="day">
+      <div class="day-head"><span class="day-name">Jeudi</span><span class="day-meta">révision <b>2 h 30</b> · tutorat · basket</span></div>
+      <div class="block"><span class="time">08:00</span><div class="act cours"><strong>Cours — IUT2</strong><span>matinée seulement · fin à 12 h 30</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act repos"><strong>Repas</strong></div></div>
+      <div class="block"><span class="time">13:15</span><div class="act repos"><strong>Sieste — 1 h, réveil au minuteur</strong><span>la récupération de la nuit d'inventaire de mercredi · pas plus d'1 h</span></div></div>
+      <div class="block"><span class="time">14:30</span><div class="act revi"><strong>Gros bloc — 2 h 30</strong><span>le seul vrai bloc de fond en semaine · SAÉ, TP, chapitres neufs</span></div></div>
+      <div class="block"><span class="time">17:30</span><div class="act tuto"><strong>Tutorat — accompagnement BUT1</strong><span>jusqu'à 19 h 00 · sur le campus</span></div></div>
+      <div class="block"><span class="time">19:00</span><div class="act repos"><strong>Repas · trajet salle</strong></div></div>
+      <div class="block"><span class="time">20:00</span><div class="act basket"><strong>Entraînement basket</strong><span>jusqu'à 22 h 00</span></div></div>
+      <div class="block"><span class="time">23:00</span><div class="act repos"><strong>Extinction 23 h 15 — nuit de récupération</strong><span>la nuit la plus importante de la semaine · ne l'entame jamais</span></div></div>
+    </article>
+
+    <article class="day nuit-day">
+      <div class="day-head"><span class="day-name">Vendredi</span><span class="day-meta">révision <b>1 h 30</b> · nuit</span></div>
+      <div class="block"><span class="time">08:00</span><div class="act cours"><strong>Cours — IUT2</strong><span>matinée jusqu'à 12 h 30</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act revi"><strong>Session midi — 45 min</strong></div></div>
+      <div class="block"><span class="time">13:20</span><div class="act cours"><strong>Cours — IUT2</strong><span>jusqu'à 17 h 30</span></div></div>
+      <div class="block"><span class="time">17:45</span><div class="act revi"><strong>Session avant shift — 45 min</strong><span>bilan de la semaine : ce qui reste flou part dans la liste du dimanche</span></div></div>
+      <div class="block"><span class="time">18:30</span><div class="act repos"><strong>Repas · trajet</strong></div></div>
+      <div class="block"><span class="time">19:00</span><div class="act nuit"><strong>Inventaire — nuit</strong><span>jusqu'à ~4 h 00</span></div></div>
+      <div class="block"><span class="time">04:30</span><div class="act repos"><strong>Coucher · grasse matinée autorisée</strong><span>pas de cours samedi : dors jusqu'à 11 h</span></div></div>
+    </article>
+
+    <article class="day">
+      <div class="day-head"><span class="day-name">Samedi</span><span class="day-meta">révision <b>2 h 30</b> · match</span></div>
+      <div class="block maybe"><span class="time">09:00</span><div class="act tuto"><strong>Tutorat BUT1<span class="rotation">1 sem. sur 3</span></strong><span>2 h · les autres samedis, tu dors jusqu'à 11 h</span></div></div>
+      <div class="block"><span class="time">11:00</span><div class="act repos"><strong>Réveil</strong><span>~6 h 30 de sommeil après le shift · c'est la nuit de rattrapage</span></div></div>
+      <div class="block"><span class="time">12:00</span><div class="act repos"><strong>Repas · préparation</strong></div></div>
+      <div class="block"><span class="time">13:00</span><div class="act basket"><strong>Match / entraînement</strong><span>journée</span></div></div>
+      <div class="block"><span class="time">17:00</span><div class="act repos"><strong>Retour · douche · repas</strong></div></div>
+      <div class="block"><span class="time">18:30</span><div class="act revi"><strong>Gros bloc — 2 h 30</strong><span>50/10 · exos et TP, pas de lecture passive · <b>1 h 30 seulement</b> les samedis de tutorat</span></div></div>
+      <div class="block"><span class="time">22:30</span><div class="act repos"><strong>Extinction</strong><span>deuxième nuit de récupération</span></div></div>
+    </article>
+
+    <article class="day big">
+      <div class="day-head"><span class="day-name">Dimanche</span><span class="day-meta">révision <b>5 h 50</b></span></div>
+      <div class="block"><span class="time">08:30</span><div class="act repos"><strong>Réveil · petit-déjeuner</strong><span>~10 h de sommeil derrière toi</span></div></div>
+      <div class="block"><span class="time">09:30</span><div class="act revi"><strong>Gros bloc 1 — 3 h 00</strong><span>la matière la plus lourde de la semaine · cerveau frais, sujet dur</span></div></div>
+      <div class="block"><span class="time">12:30</span><div class="act repos"><strong>Repas · vraie coupure de 2 h</strong><span>sortir, bouger, ne rien réviser</span></div></div>
+      <div class="block"><span class="time">14:30</span><div class="act revi"><strong>Gros bloc 2 — 2 h 30</strong><span>SAÉ, projets, rendus · du concret qui avance</span></div></div>
+      <div class="block"><span class="time">17:00</span><div class="act basket"><strong>Basket / sortie / rien</strong><span>au choix — la journée de travail est faite</span></div></div>
+      <div class="block"><span class="time">20:30</span><div class="act revi"><strong>Prépa de la semaine — 20 min</strong><span>sac prêt + les 3 priorités notées + les créneaux midi planifiés</span></div></div>
+      <div class="block"><span class="time">23:00</span><div class="act repos"><strong>Extinction</strong></div></div>
+    </article>
+
+  </section>
+
+  <section class="principles">
+    <h2>Les règles qui tiennent le planning</h2>
+    <ol class="rules">
+      <li>Le <b>créneau 12 h 30 – 13 h 20</b> est le pilier de la semaine : 45 min, tous les jours de cours. Sans lui, les jours d'inventaire tombent à zéro.</li>
+      <li>Les jours de nuit, la révision se fait <b>avant</b> le shift, jamais après. Ce qui est révisé à 4 h du matin n'est pas retenu.</li>
+      <li>À 4 h 30, <b>coucher immédiat</b> : pas de téléphone, pas de série, pas de « juste 10 minutes ». Chaque minute pèse double.</li>
+      <li><b>Sieste de 20 min</b> à la pause du shift, systématiquement. Minuteur — au-delà de 20 min, le réveil est pire.</li>
+      <li><b>Jeudi soir</b> et <b>samedi matin</b> sont les deux nuits de récupération. Elles ne se négocient pas, même pour rattraper une révision manquée.</li>
+      <li>Le <b>dimanche fait un tiers du travail</b> (5 h 50 sur 16 h 50). Un dimanche sacrifié, c'est la semaine entière qui est perdue.</li>
+      <li>En semaine : <b>relecture active et exos courts uniquement</b>. Les chapitres neufs et les gros TP vont au week-end, quand le cerveau suit.</li>
+      <li>Le <b>jeudi après-midi est ton meilleur créneau</b> : sieste d'1 h puis 2 h 30 de fond. C'est là que passent les chapitres neufs et les SAÉ, pas le soir en semaine.</li>
+      <li>Le <b>tutorat est du travail rémunéré, pas de la révision</b> — mais il te fait relire le programme de BUT1. Prépare-le sur les 20 dernières minutes de ton bloc du jeudi, jamais le soir.</li>
+      <li>Si tu décroches en cours deux semaines de suite : lâche <b>l'inventaire du mercredi</b> avant de lâcher le sommeil ou les révisions.</li>
+    </ol>
+  </section>
+</div>
+
+<button class="print-btn" onclick="window.print()">Imprimer</button>
+
+</body>
+</html>

@@ -32,15 +32,56 @@ async function loadUeAverages() {
   container.appendChild(table);
 }
 
+async function loadFiche() {
+  const res = await fetch("/api/fiche");
+  const fiche = await res.json();
+  const info = document.getElementById("semestre-info");
+  const container = document.getElementById("modules-list");
+  container.innerHTML = "";
+
+  if (!fiche || !fiche.modules || !fiche.modules.length) {
+    info.textContent = "";
+    return;
+  }
+
+  const enAttente = fiche.modules.filter((m) => m.note_attendue).length;
+  info.textContent =
+    `BUT ${fiche.annee}A · Semestre ${fiche.semestre} — ${fiche.modules.length} modules, ` +
+    `${enAttente} sans note pour l'instant`;
+
+  const titre = document.createElement("h2");
+  titre.className = "section-titre";
+  titre.textContent = "Modules du semestre";
+  container.appendChild(titre);
+
+  for (const m of fiche.modules) {
+    const card = document.createElement("div");
+    card.className = "card module" + (m.note_attendue ? " en-attente" : "");
+    const chips = Object.entries(m.ue || {})
+      .map(([nom, coef]) => `<span class="ue-chip">${nom}<b>${coef}</b></span>`)
+      .join("");
+    card.innerHTML = `
+      <h3>${m.code} <span class="module-nom">${m.nom}</span></h3>
+      <p class="statut">${
+        m.note_attendue ? "épreuve·s à venir" : `moyenne ${m.moyenne || "—"}`
+      }</p>
+      <div class="ue-chips">${chips}</div>
+    `;
+    container.appendChild(card);
+  }
+}
+
 async function loadGrades() {
   await loadUeAverages();
+  await loadFiche();
   const res = await fetch("/api/grades");
   const { grades } = await res.json();
   const list = document.getElementById("grades-list");
   list.innerHTML = "";
 
   if (!grades.length) {
-    list.innerHTML = "<p class='empty'>Aucune note pour le moment.</p>";
+    list.innerHTML =
+      "<p class='empty'>Aucune note tombée dans ce semestre pour l'instant.</p>";
     return;
   }
 
@@ -117,21 +158,35 @@ async function openMessage(idx) {
 
 const loadedTabs = new Set();
 
+const TAB_TITLES = {
+  notes: "Mes Notes",
+  messagerie: "Ma Messagerie",
+  planning: "Ma Semaine",
+};
+
 function setupTabs() {
   const tabs = document.querySelectorAll(".tab");
   const title = document.getElementById("page-title");
   tabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
-      tabs.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById("tab-notes").hidden = tab.dataset.tab !== "notes";
-      document.getElementById("tab-messagerie").hidden = tab.dataset.tab !== "messagerie";
-      title.textContent = tab.dataset.tab === "notes" ? "Mes Notes" : "Ma Messagerie";
+      const nom = tab.dataset.tab;
+      tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      document.querySelectorAll("section[id^='tab-']").forEach((section) => {
+        section.hidden = section.id !== `tab-${nom}`;
+      });
+      title.textContent = TAB_TITLES[nom] || "";
 
-      if (!loadedTabs.has(tab.dataset.tab)) {
-        loadedTabs.add(tab.dataset.tab);
-        if (tab.dataset.tab === "messagerie") {
+      // Synchroniser / Actualiser ne concernent que les donnees Chamilo.
+      document.getElementById("sync").hidden = nom === "planning";
+      document.getElementById("refresh").hidden = nom === "planning";
+
+      if (!loadedTabs.has(nom)) {
+        loadedTabs.add(nom);
+        if (nom === "messagerie") {
           await loadMessages();
+        } else if (nom === "planning") {
+          const frame = document.getElementById("planning-frame");
+          frame.src = frame.dataset.src;
         }
       }
     });
@@ -197,8 +252,15 @@ async function enableNotifications() {
 }
 
 window.addEventListener("load", async () => {
+  // Un echec d'enregistrement ne doit pas empecher l'app de s'afficher :
+  // sans try/catch, l'exception interrompait tout le reste du chargement
+  // (onglets, notes, planning) et la page restait vide.
   if ("serviceWorker" in navigator) {
-    await navigator.serviceWorker.register("/service-worker.js");
+    try {
+      await navigator.serviceWorker.register("/service-worker.js");
+    } catch (err) {
+      console.warn("Service worker non enregistre (hors ligne indisponible) :", err);
+    }
   }
   setupTabs();
   loadedTabs.add("notes");

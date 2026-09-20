@@ -21,18 +21,25 @@
   <nav class="tabs">
     <button class="tab active" data-tab="notes">Notes</button>
     <button class="tab" data-tab="messagerie">Messagerie</button>
+    <button class="tab" data-tab="planning">Planning</button>
   </nav>
 
   <button id="enable-push">Activer les notifications</button>
   <p id="push-status"></p>
 
   <section id="tab-notes">
+    <p id="semestre-info" class="muted"></p>
     <div id="ue-table"></div>
     <div id="grades-list"></div>
+    <div id="modules-list"></div>
   </section>
 
   <section id="tab-messagerie" hidden>
     <div id="messages-list"></div>
+  </section>
+
+  <section id="tab-planning" hidden>
+    <iframe id="planning-frame" title="Ma semaine type" data-src="planning.html"></iframe>
   </section>
 
   <div id="message-detail" class="overlay" hidden>

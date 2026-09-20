@@ -5,7 +5,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 from pywebpush import webpush, WebPushException
 
-from chamilo_client import get_fiche_data
+from chamilo_client import get_fiche_full
 from mail_client import get_recent_messages
 from storage import load_json, save_json
 
@@ -16,6 +16,7 @@ STATE_KEY = "grades_state"
 UE_STATE_KEY = "ue_state"
 MAIL_STATE_KEY = "mail_state"
 MAIL_READ_KEY = "mail_read"
+FICHE_KEY = "fiche_state"
 SUBS_KEY = "subscriptions"
 
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
@@ -66,6 +67,14 @@ def api_grades():
 def api_ue_averages():
     ue_averages = load_json(UE_STATE_KEY, [])
     return jsonify({"ue_averages": ue_averages})
+
+
+@app.get("/api/fiche")
+def api_fiche():
+    """Etat complet de la fiche : semestre en cours, modules, coefficients
+    d'UE et epreuves - y compris les modules dont la note n'est pas tombee."""
+    fiche = load_json(FICHE_KEY, {})
+    return jsonify(fiche)
 
 
 @app.get("/api/messages")
@@ -119,7 +128,9 @@ def send_push_to_all(title: str, body: str, notif_type: str = "general") -> None
 
 def run_check() -> dict:
     cfg = load_config()
-    current_grades, ue_averages = get_fiche_data(cfg)
+    fiche = get_fiche_full(cfg)
+    current_grades, ue_averages = fiche["grades"], fiche["ue_averages"]
+    save_json(FICHE_KEY, fiche)
     previous_grades = load_json(STATE_KEY, [])
 
     previous_raw = {g["raw"] for g in previous_grades}
