@@ -11,3 +11,4 @@ fiche_state.json
 fiche_debug.html
 rows_debug.txt
 .claude/
+*.bak
