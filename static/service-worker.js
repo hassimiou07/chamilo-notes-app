@@ -14,7 +14,7 @@ self.addEventListener("push", (event) => {
       icon,
       badge: icon,
       tag: data.type || "general",
-      data: { tab: data.type === "mail" ? "messagerie" : "notes" },
+      data: { tab: data.type === "offre" ? "messagerie" : "notes" },
     })
   );
 });

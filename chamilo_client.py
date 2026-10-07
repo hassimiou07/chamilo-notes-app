@@ -16,8 +16,8 @@ EPREUVE_A_VENIR = "epreuve a venir"
 NB_UE = 6
 
 
-def cas_login(session: requests.Session, cfg: dict) -> None:
-    params = {"service": cfg["fiche_url"]}
+def cas_login(session: requests.Session, cfg: dict, service_url: str = None) -> None:
+    params = {"service": service_url or cfg["fiche_url"]}
     login_page = session.get(cfg["cas_login_url"], params=params, timeout=20)
     login_page.raise_for_status()
 
@@ -361,3 +361,43 @@ def get_fiche_data(cfg: dict) -> tuple[list[dict], list[dict]]:
 
 def get_all_grades(cfg: dict) -> list[dict]:
     return get_fiche_full(cfg)["grades"]
+
+
+# -------------------------------------------------------- offres de stage
+
+
+def parse_stage_offers(html: str, base_url: str) -> list[dict]:
+    """Offres deposees par l'equipe pedagogique sur la page Chamilo du
+    cours ST4.01 Stage : une liste de documents (fichiers/liens), chacun
+    traite comme une offre ou une annonce a notifier."""
+    soup = BeautifulSoup(html, "html.parser")
+    offres = []
+    vus = set()
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "document.php" not in href and "download.php" not in href:
+            continue
+        if "id=" not in href or href in vus:
+            continue
+        titre = own_text(a) or a.get_text(strip=True)
+        if not titre:
+            continue
+        vus.add(href)
+        offres.append(
+            {
+                "id": href,
+                "titre": titre,
+                "url": requests.compat.urljoin(base_url, href),
+                "source": "Chamilo (ST4.01 Stage)",
+            }
+        )
+    return offres
+
+
+def get_stage_offers(cfg: dict) -> list[dict]:
+    session = requests.Session()
+    url = cfg["stage_offers_url"]
+    cas_login(session, cfg, service_url=url)
+    resp = session.get(url, timeout=20)
+    resp.raise_for_status()
+    return parse_stage_offers(resp.text, url)

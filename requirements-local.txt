@@ -1,0 +1,4 @@
+# Dependances supplementaires pour les collecteurs lances en local
+# (pas sur le serveur deploye) : pip install -r requirements-local.txt
+# puis, une seule fois : playwright install chromium
+playwright

@@ -1,0 +1,10 @@
+@echo off
+REM Copie ce fichier en run_collect_jobteaser.bat, renseigne les deux
+REM variables ci-dessous puis mets-le en tache planifiee (Planificateur
+REM de taches Windows), par exemple une fois par jour.
+
+set UPSTASH_REDIS_REST_URL=
+set UPSTASH_REDIS_REST_TOKEN=
+
+cd /d "%~dp0"
+python collect_jobteaser.py

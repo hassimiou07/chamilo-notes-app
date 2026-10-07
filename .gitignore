@@ -1,7 +1,8 @@
 config.json
 grades_state.json
-mail_state.json
-mail_read.json
+chamilo_offers_state.json
+jobteaser_offers_state.json
+offers_read.json
 subscriptions.json
 server.log
 server*.log
@@ -12,5 +13,6 @@ fiche_debug.html
 rows_debug.txt
 .claude/
 *.bak
-run_collect_mail.bat
-collect_mail.log
+run_collect_jobteaser.bat
+collect_jobteaser.log
+jobteaser_session.json

@@ -111,7 +111,7 @@ async function loadMessages() {
   list.innerHTML = "";
 
   if (!messages.length) {
-    list.innerHTML = "<p class='empty'>Aucun message pour le moment.</p>";
+    list.innerHTML = "<p class='empty'>Aucune offre de stage pour le moment.</p>";
     return;
   }
 
@@ -119,11 +119,11 @@ async function loadMessages() {
     const card = document.createElement("div");
     card.className = "card mail-card" + (m.unread ? " unread" : "");
     card.dataset.idx = idx;
-    const date = m.date ? new Date(m.date).toLocaleString("fr-FR") : "";
+    const sousTitre = [m.entreprise, m.lieu].filter(Boolean).join(" · ") || m.source;
     card.innerHTML = `
-      <h3>${m.unread ? '<span class="dot"></span>' : ""}${m.subject}</h3>
-      <p class="epreuve">${m.from}</p>
-      <p class="moyenne">${date}</p>
+      <h3>${m.unread ? '<span class="dot"></span>' : ""}${m.titre}</h3>
+      <p class="epreuve">${sousTitre}</p>
+      <p class="moyenne">${m.source}</p>
     `;
     card.addEventListener("click", () => openMessage(idx));
     list.appendChild(card);
@@ -132,12 +132,17 @@ async function loadMessages() {
 
 async function openMessage(idx) {
   const m = currentMessages[idx];
-  document.getElementById("detail-subject").textContent = m.subject;
-  document.getElementById("detail-from").textContent = m.from;
-  document.getElementById("detail-date").textContent = m.date
-    ? new Date(m.date).toLocaleString("fr-FR")
-    : "";
-  document.getElementById("detail-body").textContent = m.body;
+  document.getElementById("detail-subject").textContent = m.titre;
+  document.getElementById("detail-from").textContent = [m.entreprise, m.lieu].filter(Boolean).join(" · ") || m.source;
+  document.getElementById("detail-date").textContent = m.contrat || "";
+  const body = document.getElementById("detail-body");
+  body.innerHTML = "";
+  const lien = document.createElement("a");
+  lien.href = m.url;
+  lien.target = "_blank";
+  lien.rel = "noopener";
+  lien.textContent = "Voir l'offre (" + m.source + ")";
+  body.appendChild(lien);
   document.getElementById("message-detail").hidden = false;
 
   if (m.unread) {
@@ -160,7 +165,7 @@ const loadedTabs = new Set();
 
 const TAB_TITLES = {
   notes: "Mes Notes",
-  messagerie: "Ma Messagerie",
+  messagerie: "Offres de stage",
   planning: "Ma Semaine",
 };
 
@@ -215,14 +220,12 @@ async function syncNow() {
       throw new Error(data.error || `le serveur a repondu ${res.status}`);
     }
     await refreshCurrentTab();
-    // Les notes peuvent etre a jour meme si la messagerie a echoue :
-    // on le dit, au lieu de laisser croire a une synchro complete.
-    if (data.mail_error) {
-      status.textContent = `Notes a jour (${data.new_grades} nouvelle(s)). Messagerie indisponible : ${data.mail_error}`;
-    } else if (data.mail_source) {
-      status.textContent = `Notes a jour (${data.new_grades} nouvelle(s)). Messagerie alimentee par le ${data.mail_source}.`;
+    // Les notes peuvent etre a jour meme si la recuperation des offres a
+    // echoue : on le dit, au lieu de laisser croire a une synchro complete.
+    if (data.offers_error) {
+      status.textContent = `Notes a jour (${data.new_grades} nouvelle(s)). Offres indisponibles : ${data.offers_error}`;
     } else {
-      status.textContent = `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_messages} nouveau(x) message(s).`;
+      status.textContent = `Synchronise : ${data.new_grades} nouvelle(s) note(s), ${data.new_offers} nouvelle(s) offre(s) de stage.`;
     }
   } catch (err) {
     // Afficher la cause reelle : sans elle, impossible de distinguer un

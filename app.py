@@ -5,8 +5,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 from pywebpush import webpush, WebPushException
 
-from chamilo_client import get_fiche_full
-from mail_client import get_recent_messages
+from chamilo_client import get_fiche_full, get_stage_offers
 from storage import load_json, save_json
 
 BASE_DIR = Path(__file__).parent
@@ -14,8 +13,9 @@ CONFIG_PATH = BASE_DIR / "config.json"
 
 STATE_KEY = "grades_state"
 UE_STATE_KEY = "ue_state"
-MAIL_STATE_KEY = "mail_state"
-MAIL_READ_KEY = "mail_read"
+CHAMILO_OFFERS_KEY = "chamilo_offers_state"
+JOBTEASER_OFFERS_KEY = "jobteaser_offers_state"
+OFFERS_READ_KEY = "offers_read"
 FICHE_KEY = "fiche_state"
 SUBS_KEY = "subscriptions"
 
@@ -23,14 +23,6 @@ VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
 VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "mailto:example@example.com")
 CHECK_SECRET = os.environ.get("CHECK_SECRET", "")
-# Sur l'hebergeur, l'IMAP de l'universite refuse la connexion : les mails
-# sont deposes par collect_mail.py depuis le reseau de la maison. Mettre
-# DISABLE_SERVER_MAIL=1 evite une tentative vouee a echouer a chaque synchro.
-SERVER_MAIL_DISABLED = os.environ.get("DISABLE_SERVER_MAIL", "").lower() in (
-    "1",
-    "true",
-    "oui",
-)
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -48,10 +40,19 @@ def load_config() -> dict:
         "cas_login_url": os.environ.get(
             "CHAMILO_CAS_URL", "https://authentification.univ-grenoble-alpes.fr/login"
         ),
-        "email_username": os.environ.get("EMAIL_USERNAME", ""),
-        "email_password": os.environ.get("EMAIL_PASSWORD", ""),
-        "imap_host": os.environ.get("IMAP_HOST", "imap.partage.renater.fr"),
-        "imap_port": int(os.environ.get("IMAP_PORT", "993")),
+        "stage_offers_url": os.environ.get(
+            "CHAMILO_STAGE_OFFERS_URL",
+            "https://chamilo.iut2.univ-grenoble-alpes.fr/main/document/document.php"
+            "?cidReq=INFO4012&id_session=0&gidReq=0&gradebook=0&origin=&id=817948",
+        ),
+        "jobteaser_url": os.environ.get(
+            "JOBTEASER_URL",
+            "https://iut2-grenoble.jobteaser.com/fr/job-offers?locale=none&q=cybers%C3%A9curit%C3%A9"
+            "&contract=internship&lat=45.18756&lng=5.735782"
+            "&localized_location=Grenoble%2C+Is%C3%A8re%2C+France"
+            "&location=France%3A%3AAuvergne-Rh%C3%B4ne-Alpes%3A%3AIs%C3%A8re%3A%3AGrenoble%3A%3A"
+            "_bG9jYWxpdHk6ZnI6Y2l0eTpIQWNlaUdOcEZXc3gzcVlBVkt5Q2Rvb1NPTFE9&radius=30",
+        ),
     }
 
 
@@ -87,22 +88,22 @@ def api_fiche():
 
 @app.get("/api/messages")
 def api_messages():
-    messages = load_json(MAIL_STATE_KEY, [])
-    read_ids = set(load_json(MAIL_READ_KEY, []))
-    for m in messages:
-        m["unread"] = m["id"] not in read_ids
-    return jsonify({"messages": messages})
+    offres = load_json(CHAMILO_OFFERS_KEY, []) + load_json(JOBTEASER_OFFERS_KEY, [])
+    read_ids = set(load_json(OFFERS_READ_KEY, []))
+    for o in offres:
+        o["unread"] = o["id"] not in read_ids
+    return jsonify({"messages": offres})
 
 
 @app.post("/api/messages/read")
 def api_mark_read():
     body = request.get_json(force=True)
-    msg_id = body.get("id")
-    if not msg_id:
+    offre_id = body.get("id")
+    if not offre_id:
         return jsonify({"error": "id manquant"}), 400
-    read_ids = set(load_json(MAIL_READ_KEY, []))
-    read_ids.add(msg_id)
-    save_json(MAIL_READ_KEY, sorted(read_ids))
+    read_ids = set(load_json(OFFERS_READ_KEY, []))
+    read_ids.add(offre_id)
+    save_json(OFFERS_READ_KEY, sorted(read_ids))
     return jsonify({"ok": True})
 
 
@@ -117,7 +118,7 @@ def api_subscribe():
 
 
 def send_push_to_all(title: str, body: str, notif_type: str = "general") -> None:
-    icon = "icons/icon-mail.png" if notif_type == "mail" else "icons/icon-note.png"
+    icon = "icons/icon-mail.png" if notif_type == "offre" else "icons/icon-note.png"
     subs = load_json(SUBS_KEY, [])
     still_valid = []
     for sub in subs:
@@ -157,42 +158,37 @@ def run_check() -> dict:
             )
             send_push_to_all(title, body, notif_type="note")
 
-    # La messagerie est isolee : le serveur IMAP de l'universite coupe
-    # regulierement les connexions venant d'un hebergeur, et une panne de
-    # mail ne doit pas faire echouer la recuperation des notes, qui est
-    # la raison d'etre de l'app.
+    # Les offres JobTeaser arrivent a part (collect_jobteaser.py, lance en
+    # local : JobTeaser bloque les requetes HTTP directes du serveur avec
+    # une page anti-bot). Seules les offres Chamilo sont recuperees ici,
+    # et une panne de cette source ne doit pas faire echouer les notes.
     resultat = {
         "new_grades": len(new_grades),
         "first_run": is_first_run,
-        "new_messages": 0,
-        "mail_first_run": False,
-        "mail_error": None,
+        "new_offers": 0,
+        "offers_first_run": False,
+        "offers_error": None,
     }
 
-    if SERVER_MAIL_DISABLED:
-        resultat["mail_source"] = "collecteur local"
-        return resultat
-
     try:
-        current_messages = get_recent_messages(cfg)
-        previous_messages = load_json(MAIL_STATE_KEY, [])
-        previous_ids = {m["id"] for m in previous_messages}
-        new_messages = [m for m in current_messages if m["id"] not in previous_ids]
+        current_offers = get_stage_offers(cfg)
+        previous_offers = load_json(CHAMILO_OFFERS_KEY, [])
+        previous_ids = {o["id"] for o in previous_offers}
+        new_offers = [o for o in current_offers if o["id"] not in previous_ids]
 
-        save_json(MAIL_STATE_KEY, current_messages)
+        save_json(CHAMILO_OFFERS_KEY, current_offers)
 
-        mail_is_first_run = len(previous_messages) == 0
-        if not mail_is_first_run:
-            for msg in new_messages:
-                title = f"Nouveau mail : {msg['subject']}"
-                body = f"De : {msg['from']}\n{msg['body'][:300]}"
-                send_push_to_all(title, body, notif_type="mail")
+        offers_is_first_run = len(previous_offers) == 0
+        if not offers_is_first_run:
+            for offre in new_offers:
+                title = f"Nouvelle offre de stage : {offre['titre']}"
+                send_push_to_all(title, offre["source"], notif_type="offre")
 
-        resultat["new_messages"] = len(new_messages)
-        resultat["mail_first_run"] = mail_is_first_run
+        resultat["new_offers"] = len(new_offers)
+        resultat["offers_first_run"] = offers_is_first_run
     except Exception as exc:
-        app.logger.exception("Recuperation des messages echouee")
-        resultat["mail_error"] = f"{type(exc).__name__} : {exc}"
+        app.logger.exception("Recuperation des offres Chamilo echouee")
+        resultat["offers_error"] = f"Chamilo : {type(exc).__name__} : {exc}"
 
     return resultat
 
